@@ -1,5 +1,5 @@
 import mysql.connector
-from beautifultable import BeautifulTable
+from . import table_print
 
 # Connects to Database 
 def connectDb():
@@ -13,16 +13,44 @@ def connectDb():
 
     return mydb
 
-#Prints in a pretty, table fashion a query result
-def printTable(query, headers):
-    table = BeautifulTable(max_width=160)
-    table.set_style(BeautifulTable.STYLE_GRID)
-    table.column_headers = headers
+#Gets information from a product
+def getProductInfo(db, ID):
+    cursor = db.cursor()
 
-    for row in query:
-        table.append_row(row)
+    #Prepare SQL -- Get Info of product given an ID
+    sql = "SELECT ProductID, ProductName, UnitsInStock from products WHERE ProductId = %s"
+    val = (ID, )
 
-    print(table)
+    cursor.execute(sql, val)
+
+    #Prepare presentation to the user
+    result = cursor.fetchall()
+    if (not result):
+        print("\n\n------- No product with given ID was found. --------\n\n")
+        return 1
+    else:
+        table_print.printTable(result, ["ProductID", "ProductName", "UnitsInStock"])
+        return 0
+
+#6th Option. Restocks a product
+def restock(db, ID, num):
+    cursor = db.cursor()
+
+    #Prepare SQL -- Adds 'num' to 'UnitsInStock' of 'ID' given product
+    sql = "UPDATE products SET UnitsInStock = UnitsInStock + %s WHERE ProductId = %s"
+    val = (num, ID)
+
+    cursor.execute(sql, val)
+    
+    #Commit to the database changes
+    db.commit()
+
+    #Prepare presentation to the user
+    print("\n\n", cursor.rowcount, "record(s) updated")
+    print("Successfully updated Units In Stock for the product:")
+    
+    return 0
+ 
 
 
 #5th Option. Gets pending orders
@@ -39,7 +67,7 @@ def pending(db):
     #Prepare presentation to the user
     result = cursor.fetchall()
     print("\n\nPrinting all orders pending to be shipped...\n\n")
-    printTable(result, ["OrderId", "OrderDate", "CompanyName", "ContactName", "Country", "Phone"])
+    table_print.printTable(result, ["OrderId", "OrderDate", "CompanyName", "ContactName", "Country", "Phone"])
     
     return 0
 
