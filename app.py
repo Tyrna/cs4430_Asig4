@@ -37,11 +37,28 @@ def switch_options(number, mydb):
                     print("\nCustomer added to 'customers'.")
                     return 0
         else:
-            print("\n\nA customer with this ID already exists, info above")
+            print("\n\nA customer with this ID already exists; info above")
                 
         return 1
+
     elif (number == 2):
+        print("\n\nHow many products are you going to add to this order?")
+        pID = get_products(mydb, input())
+
+        if (pID):
+            orderInfo = get_order_info(mydb)
+            if (orderInfo):
+                if (not database_connect.addOrder(mydb, orderInfo, pID)):
+                    print("??")
+            else:
+                print("\nPlease provide proper information for the order...")
+                return 1
+        else:
+            print("\nPlease provide proper product ID's...")
+            return 1
+        
         return 0
+
     elif (number == 3):
         print("\n\nPlease provide the ID of the order you wish to remove: ")
         ID = input()
@@ -58,6 +75,7 @@ def switch_options(number, mydb):
             print("\n\n------- No order with given ID was found. -------\n\n")
 
         return 0
+
     elif (number == 4):
         #Id of the Order
         print("\n\nPlease provide the ID of the order you wish to ship: ")
@@ -82,6 +100,7 @@ def switch_options(number, mydb):
             print("\n\n------- No order with given ID was found. -------\n\n")
 
         return 0
+
     elif (number == 5):
         database_connect.pending(mydb)
         return 0
@@ -200,6 +219,71 @@ def get_customer_info():
         return 0
         
     return allInfo
+
+#Gets products information to add to an order
+def get_products(mydb, num):
+    allIDs = []
+    for i in range(0, int(num)):
+        print("\n\nPlease provide the ID of the product you wish to add to the order: ")
+        ID = input()
+        if (not database_connect.getProductInfo(mydb, ID)):
+            allIDs.append(ID)
+        else:
+            return 0
+
+    return allIDs
+
+#Gets information from an order to be created
+def get_order_info(mydb):
+    orderInfo = []
+
+    print("\nWhat is the CustomerID for this order?")
+    info = input()
+    if (database_connect.getCustomerInfo(mydb, info)):
+        print("\nSuch CustomerID doesn't exist...")
+        return 0
+    orderInfo.append(info)
+
+    print("\nWhat is the EmployedID for this order?")
+    info = input()
+    if (database_connect.getEmployeeInfo(mydb, info)):
+        print("\nSuch EmployeeID doesn't exist...")
+        return 0
+    orderInfo.append(info)
+
+    print("\nWhat is the ShipperID for this order?")
+    info = input()
+    if (database_connect.getShipperInfo(mydb, info)):
+        print("\nSuch ShipperID doesn't exist...")
+        return 0
+    orderInfo.append(info)
+
+    print("\nWhat would be the freight of this order?")
+    info = input()
+    orderInfo.append(info)
+
+    print("\nWhat is the Ship name for this order?")
+    info = input()
+    orderInfo.append(info)
+
+    print("\nWhat is the Ship Address for this order?")
+    info = input()
+    orderInfo.append(info)
+
+    print("\nWhat is the Ship City for this order?")
+    info = input()
+    orderInfo.append(info)
+
+    print("\nWhat is the Ship Region for this order?")
+    info = input()
+    orderInfo.append(info)
+
+    print("\nWhat is the Ship Country for this order?")
+    info = input()
+    orderInfo.append(info)
+
+    return orderInfo
+
 
 #Prints menu and gets user input
 def menu():

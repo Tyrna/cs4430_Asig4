@@ -31,6 +31,41 @@ def getCustomerInfo(db, ID):
         table_print.printTable(result, ["CustomerID", "CompanyName", "ContactName", "ContactTitle", "Address", "Country", "Phone"])
         return 0
 
+#Gets information from an employee
+def getEmployeeInfo(db, ID):
+    cursor = db.cursor()
+
+    #Prepare SQL -- Get info of an employee given an ID
+    sql = "SELECT EmployeeID, LastName, FirstName, Country, HomePhone FROM employees WHERE EmployeeID = %s"
+    val = (ID, )
+
+    #Get information and present it to the user
+    cursor.execute(sql, val)
+    result = cursor.fetchall()
+
+    if (not result):
+        return 1
+    else:
+        table_print.printTable(result, ["EmployeeID", "LastName", "FirstName", "Country", "HomePhone"])
+        return 0
+
+#Gets information from a shipper
+def getShipperInfo(db, ID):
+    cursor = db.cursor()
+
+    #Prepare SQL -- Get info of a shipper given an ID
+    sql = "SELECT ShipperID, CompanyName, Phone FROM shippers WHERE ShipperID = %s"
+    val = (ID, )
+
+    #Get information and present it to the user
+    cursor.execute(sql, val)
+    result = cursor.fetchall()
+
+    if (not result):
+        return 1
+    else:
+        table_print.printTable(result, ["ShipperID", "CompanyName", "Phone"])
+        return 0
 
 #Gets information from a product
 def getProductInfo(db, ID):
@@ -80,13 +115,59 @@ def addCustomer(db, ID, info):
         "Region, PostalCode, Country, Phone, Fax) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     val = (ID, info[0], info[1], info[2], info[3], info[4], info[5], info[6], info[7], info[8], info[9])
 
-    #Execute and commit to the dabatase
+    #Execute and commit to the database
     cursor.execute(sql, val)
     db.commit()
 
     #Prepare presentation to the user
     print("\n\nDB:", cursor.rowcount, "record(s) inserted")
     print("DB: Successfully added customer into customers")
+
+    return 0
+
+#2th Option. Inserts a new order into 'order' and products into 'order_details'
+def addOrder(db, order, products):
+    cursor = db.cursor()
+
+    #Prepare SQL -- Get Postal Code for Customer of this order
+    sql = "SELECT PostalCode FROM customers WHERE CustomerID = %s"
+    val = (order[0], )
+
+    #Execute and get value
+    cursor.execute(sql, val)
+    postal = cursor.fetchall()
+
+    #Prepare SQL -- Inserts a new order into the table 'orders'
+    sql = "INSERT INTO orders (CustomerID, EmployeeID, OrderDate, ShipVia, Freight, ShipName, ShipAddress," \
+        "ShipCity, ShipRegion, ShipPostalCode, ShipCountry) VALUES (%s, %s, CURRENT_TIMESTAMP(), %s, %s," \
+        "%s, %s, %s, %s, %s, %s)"
+    val = (order[0], order[1], order[2], order[3], order[4], order[5], order[6], order[7], postal[0][0], order[8])
+
+    #Execute to the database
+    cursor.execute(sql, val)
+
+    #Prepare SQL -- Get newly inserted order
+    sql = "SELECT MAX(OrderID) FROM orders"
+
+    #Execute and get value
+    cursor.execute(sql)
+    orderid = cursor.fetchall()
+
+    #For each product to add...
+    for p in products:
+        #Prepare SQL -- Inserts a new order/product into 'order_details'
+        sql = "INSERT INTO order_details (OrderID, ProductID) VALUES (%s, %s)"
+        val = (orderid[0][0], p)
+
+        #Execute to the database
+        cursor.execute(sql, val)
+
+
+    #Commit all changes to the database
+    db.commit()
+
+    #Prepare presentation to the user
+    print("DB: Successfully added order to order and order_details")
 
     return 0
 
